@@ -655,15 +655,15 @@ const AdminDashboard = () => {
               const amtPaid   = (res as any).amount_paid as number | undefined;
 
               const payColor =
-                payStatus === "paid"                 ? "bg-available/15 text-available border-available/30"
-                : payStatus === "pending_verification" ? "bg-yellow-50 text-yellow-700 border-yellow-300"
-                : payStatus === "failed"               ? "bg-occupied/15 text-occupied border-occupied/30"
+                payStatus === "paid"             ? "bg-available/15 text-available border-available/30"
+                : payStatus === "pending_payment"  ? "bg-amber-50 text-amber-700 border-amber-300"
+                : payStatus === "failed"           ? "bg-occupied/15 text-occupied border-occupied/30"
                 : "bg-secondary text-muted-foreground border-border";
 
               const payLabel =
-                payStatus === "paid"                  ? "✓ Paid"
-                : payStatus === "pending_verification" ? "⏳ Verifying"
-                : payStatus === "failed"               ? "✗ Failed"
+                payStatus === "paid"             ? "✓ Paid"
+                : payStatus === "pending_payment"  ? "⏳ Payment sent — verify"
+                : payStatus === "failed"           ? "✗ Failed"
                 : "Unpaid";
 
               return (
@@ -720,16 +720,20 @@ const AdminDashboard = () => {
                               TxID: {txId}
                             </span>
                           )}
-                          {payStatus === "pending_verification" && (
+                          {payStatus === "pending_payment" && (
                             <button
                               onClick={async () => {
-                                await supabase.from("reservations").update({ payment_status: "paid" } as any).eq("id", res.id);
-                                toast.success("Payment marked as verified ✓");
+                                // 1. Mark payment as paid
+                                await supabase.from("reservations").update({
+                                  payment_status: "paid",
+                                  status: "confirmed",
+                                } as any).eq("id", res.id);
+                                toast.success("Payment verified & booking confirmed ✓");
                                 fetchReservations();
                               }}
-                              className="ml-auto px-3 py-1 rounded-lg bg-available/20 text-available border border-available/40 hover:bg-available/30 transition text-xs font-bold"
+                              className="ml-auto px-4 py-1.5 rounded-lg bg-available text-white hover:bg-available/90 transition text-xs font-bold shadow-sm"
                             >
-                              ✓ Mark as Paid
+                              ✓ I received payment — Confirm booking
                             </button>
                           )}
                         </div>
